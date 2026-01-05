@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     command: npm run dev
     ports:
-      - "3000:3000"
+      - "80:3000"
     env_file:
       - ./backend/.env
     depends_on:
@@ -41,7 +41,7 @@ services:
       POSTGRES_PASSWORD: logistima
       POSTGRES_DB: logistima
     ports:
-      - "5432:5432"
+      - "54322:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
