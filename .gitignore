@@ -1,0 +1,59 @@
+# ======================
+# Node.js
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ======================
+# Environment variables
+# ======================
+.env
+.env.local
+.env.development
+.env.production
+
+# ======================
+# OS files
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# Editor / IDE
+# ======================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ======================
+# Logs
+# ======================
+logs/
+*.log
+
+# ======================
+# Test coverage
+# ======================
+coverage/
+
+# ======================
+# Build output (future)
+# ======================
+dist/
+build/
+
+# ======================
+# Docker
+# ======================
+docker-data/
+.pgdata/
+
+# ======================
+# Misc
+# ======================
+*.tmp
+*.cache
