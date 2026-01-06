@@ -1,0 +1,12 @@
+{
+  "name": "logistima-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+    "workspaces": [
+    "backend"
+    ],
+  "scripts": {
+    "dev:backend": "npm run dev -w backend"
+  }
+}

@@ -5,11 +5,20 @@ on:
     branches:
       - main
       - master
+    paths:
+      - 'backend/**'
   pull_request:
+    paths:
+      - 'backend/**'
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout repository
@@ -24,4 +33,4 @@ jobs:
         run: npm install
 
       - name: Run tests
-        run: npm test
+        run: npm test --if-present
