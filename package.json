@@ -3,10 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "description": "",
-    "workspaces": [
+  "workspaces": [
     "backend"
-    ],
+  ],
   "scripts": {
-    "dev:backend": "npm run dev -w backend"
+    "dev:backend": "npm run dev -w backend",
+    "test": "npm test -w backend"
   }
 }
