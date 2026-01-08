@@ -1,120 +1,153 @@
-// models/index.js
+// src/models/index.js
 import { Sequelize } from 'sequelize';
-import config from '../config/database.js';
+
 import UserModel from './User.js';
 import ZoneModel from './Zone.js';
 import CourierModel from './Courier.js';
 import ParcelModel from './Parcel.js';
 import DeliveryModel from './Delivery.js';
 
-// Déterminer l'environnement
-const env = process.env.NODE_ENV || 'development';
-const dbConfig = config[env];
+/**
+ * ============================================================================
+ * Sequelize initialization (process.env ONLY)
+ * ============================================================================
+ */
 
-// Initialisation de Sequelize
 const sequelize = new Sequelize(
-  dbConfig.database,
-  dbConfig.username,
-  dbConfig.password,
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
   {
-    host: dbConfig.host,
-    port: dbConfig.port,
-    dialect: dbConfig.dialect,
-    logging: dbConfig.logging,
-    pool: dbConfig.pool,
-    dialectOptions: dbConfig.dialectOptions || {},
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT || 5432),
+    dialect: process.env.DB_DIALECT || 'postgres',
+
+    logging:
+      process.env.DB_LOGGING === 'true'
+        ? console.log
+        : false,
+
+    pool: {
+      max: Number(process.env.DB_POOL_MAX || 10),
+      min: Number(process.env.DB_POOL_MIN || 0),
+      acquire: Number(process.env.DB_POOL_ACQUIRE || 30000),
+      idle: Number(process.env.DB_POOL_IDLE || 10000),
+    },
+
+    dialectOptions:
+      process.env.DB_SSL === 'true'
+        ? {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }
+        : {},
+
     define: {
       timestamps: true,
-      underscored: true
-    }
+      underscored: true,
+    },
   }
 );
 
-// Import des modèles
+/**
+ * ============================================================================
+ * Model initialization
+ * ============================================================================
+ */
+
 const User = UserModel(sequelize);
 const Zone = ZoneModel(sequelize);
 const Courier = CourierModel(sequelize);
 const Parcel = ParcelModel(sequelize);
 const Delivery = DeliveryModel(sequelize);
 
-// ============================================
-// DÉFINITION DES RELATIONS (Comme dans le UML)
-// ============================================
+/**
+ * ============================================================================
+ * Model relationships (UML-aligned)
+ * ============================================================================
+ */
 
-// User "1" --> "0..*" Parcel : creates
+// User → Parcel (creates)
 User.hasMany(Parcel, {
   foreignKey: 'senderId',
   as: 'parcels',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 Parcel.belongsTo(User, {
   foreignKey: 'senderId',
-  as: 'sender'
+  as: 'sender',
 });
 
-// User "1" --> "0..1" Courier : has account
+// User → Courier (account)
 User.hasOne(Courier, {
   foreignKey: 'userId',
   as: 'courierProfile',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 Courier.belongsTo(User, {
   foreignKey: 'userId',
-  as: 'user'
+  as: 'user',
 });
 
-// Zone "1" --> "0..*" Parcel : contains
+// Zone → Parcel (contains)
 Zone.hasMany(Parcel, {
   foreignKey: 'zoneId',
   as: 'parcels',
-  onDelete: 'RESTRICT'
+  onDelete: 'RESTRICT',
 });
 Parcel.belongsTo(Zone, {
   foreignKey: 'zoneId',
-  as: 'zone'
+  as: 'zone',
 });
 
-// Zone "1" --> "0..*" Courier : operates in
+// Zone → Courier (operates in)
 Zone.hasMany(Courier, {
   foreignKey: 'currentZoneId',
   as: 'couriers',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 Courier.belongsTo(Zone, {
   foreignKey: 'currentZoneId',
-  as: 'currentZone'
+  as: 'currentZone',
 });
 
-// Courier "1" --> "0..*" Delivery : handles
+// Courier → Delivery (handles)
 Courier.hasMany(Delivery, {
   foreignKey: 'courierId',
   as: 'deliveries',
-  onDelete: 'RESTRICT'
+  onDelete: 'RESTRICT',
 });
 Delivery.belongsTo(Courier, {
   foreignKey: 'courierId',
-  as: 'courier'
+  as: 'courier',
 });
 
-// Parcel "1" --> "0..1" Delivery : assigned to
+// Parcel → Delivery (assigned)
 Parcel.hasOne(Delivery, {
   foreignKey: 'parcelId',
   as: 'delivery',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 Delivery.belongsTo(Parcel, {
   foreignKey: 'parcelId',
-  as: 'parcel'
+  as: 'parcel',
 });
 
-// Export des modèles et de l'instance Sequelize
+/**
+ * ============================================================================
+ * Exports
+ * ============================================================================
+ */
+
 export {
   sequelize,
   User,
   Zone,
   Courier,
   Parcel,
-  Delivery
+  Delivery,
 };
 
 export default {
@@ -123,5 +156,5 @@ export default {
   Zone,
   Courier,
   Parcel,
-  Delivery
+  Delivery,
 };
