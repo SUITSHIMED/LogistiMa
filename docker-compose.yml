@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     container_name: logistima_api
@@ -9,13 +7,25 @@ services:
     command: npm run dev
     ports:
       - "80:3000"
-    env_file:
-      - ./backend/.env
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: logistima
+      DB_PASSWORD: logistima
+      DB_NAME: logistima
+      DB_DIALECT: postgres
+      DB_LOGGING: "false"
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       - db
       - redis
     volumes:
       - ./backend:/app
+      - /app/node_modules
     restart: unless-stopped
 
   worker:
@@ -24,13 +34,24 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     command: npm run worker
-    env_file:
-      - ./backend/.env
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: logistima
+      DB_PASSWORD: logistima
+      DB_NAME: logistima
+      DB_DIALECT: postgres
+      DB_LOGGING: "false"
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       - redis
       - db
     volumes:
       - ./backend:/app
+      - /app/node_modules
     restart: unless-stopped
 
   db:
