@@ -1,19 +1,44 @@
+import { assignCourierToParcel } from "../services/dispatcher.service.js";
+
 export const createDelivery = async (req, res) => {
   try {
-    const deliveryData = req.body;
-    
-    res.status(201).json({
+    const { parcelId, zoneId } = req.body;
+
+    if (!parcelId || !zoneId) {
+      return res.status(400).json({
+        success: false,
+        message: "parcelId and zoneId are required"
+      });
+    }
+
+    const delivery = await assignCourierToParcel({ parcelId, zoneId });
+
+    return res.status(201).json({
       success: true,
       message: "Delivery created successfully",
-      data: {
-        id: Date.now(), 
-        ...deliveryData,
-        createdAt: new Date().toISOString()
-      }
+      data: delivery
     });
   } catch (error) {
     console.error("Error creating delivery:", error);
-    res.status(500).json({
+
+    // No courier available
+    if (error.code === "NO_COURIER_AVAILABLE") {
+      return res.status(409).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    // Parcel not found
+    if (error.code === "PARCEL_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    // Unknown error
+    return res.status(500).json({
       success: false,
       message: "Failed to create delivery",
       error: error.message
@@ -23,6 +48,7 @@ export const createDelivery = async (req, res) => {
 
 export const getAllDeliveries = async (req, res) => {
   try {
+    // (to be implemented later with DB)
     res.status(200).json({
       success: true,
       data: [],
@@ -38,12 +64,11 @@ export const getAllDeliveries = async (req, res) => {
   }
 };
 
-
 export const getDeliveryById = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    
+
+    // (to be implemented later with DB)
     res.status(200).json({
       success: true,
       data: { id },
