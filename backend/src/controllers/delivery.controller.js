@@ -1,60 +1,48 @@
+import { acquireLock, releaseLock } from "../utils/redisLock.js";
+import { createDeliveryTransaction } from "../services/delivery.service.js";
+
+/* CREATE */
 export const createDelivery = async (req, res) => {
+  const { userId, courierId, parcelData } = req.body;
+  const lockKey = `lock:courier:${courierId}`;
+
+  let lockValue;
+
   try {
-    const deliveryData = req.body;
-    
-    res.status(201).json({
+    lockValue = await acquireLock(lockKey, 5000);
+
+    if (!lockValue) {
+      return res.status(409).json({
+        success: false,
+        message: "Courier is being assigned by another request",
+      });
+    }
+
+    const result = await createDeliveryTransaction({
+      userId,
+      courierId,
+      parcelData,
+    });
+
+    return res.status(201).json({
       success: true,
-      message: "Delivery created successfully",
-      data: {
-        id: Date.now(), 
-        ...deliveryData,
-        createdAt: new Date().toISOString()
-      }
+      data: result,
     });
   } catch (error) {
-    console.error("Error creating delivery:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to create delivery",
-      error: error.message
-    });
+    return res.status(500).json({ error: error.message });
+  } finally {
+    if (lockValue) {
+      await releaseLock(lockKey, lockValue);
+    }
   }
 };
 
+/* READ ALL */
 export const getAllDeliveries = async (req, res) => {
-  try {
-    res.status(200).json({
-      success: true,
-      data: [],
-      message: "Deliveries retrieved successfully"
-    });
-  } catch (error) {
-    console.error("Error fetching deliveries:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch deliveries",
-      error: error.message
-    });
-  }
+  return res.status(501).json({ message: "Not implemented yet" });
 };
 
-
+/* READ ONE */
 export const getDeliveryById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    
-    res.status(200).json({
-      success: true,
-      data: { id },
-      message: "Delivery retrieved successfully"
-    });
-  } catch (error) {
-    console.error("Error fetching delivery:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch delivery",
-      error: error.message
-    });
-  }
+  return res.status(501).json({ message: "Not implemented yet" });
 };
