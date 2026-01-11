@@ -1,22 +1,23 @@
 import app from "./app.js";
-import sequelize from "./config/db.js";
-import "./models/index.js";
-import "./database/migrate.js";
-import "./database/seed.js";
+import { sequelize } from "./models/index.js";
+import { migrate } from "./database/migrate.js";
+import { seed } from "./database/seed.js";
 
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   try {
-    console.log("🚀 Starting LogistiMa Server...");
+    console.log("Starting LogistiMa Server...");
     
     // 1. Tester la connexion à la base de données
     await sequelize.authenticate();
     console.log("✅ Database connected successfully");
 
     // 2. Exécuter les migrations
-    // console.log("\n📦 Running migrations...");
-    // await migrate();
+    if (process.env.RUN_MIGRATIONS !== "false") {
+      console.log("\n📦 Running migrations...");
+      await migrate();
+    }
 
     // 3. Seeder la base (uniquement en dev)
     if (process.env.NODE_ENV === "development" && process.env.SEED_DB === "true") {
