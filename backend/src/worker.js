@@ -1,5 +1,50 @@
-require("dotenv").config();
+import { Worker } from 'bullmq';
+import { Delivery } from './models/index.js';
+import dotenv from 'dotenv';
 
-console.log("Worker started");
+dotenv.config();
 
-// BullMQ ici
+const redisConnection = {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379,
+};
+
+console.log("🚀 Worker Service Starting...");
+
+const worker = new Worker('delivery-queue', async (job) => {
+    console.log(`[Job ${job.id}] Processing ${job.name}...`);
+
+    if (job.name === 'calculate-route') {
+        const { deliveryId, startLocation } = job.data;
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        try {
+            const delivery = await Delivery.findByPk(deliveryId);
+            if (delivery) {
+                delivery.routeData = {
+                    start: startLocation,
+                    estimatedTime: "45 mins",
+                    path: ["Warehouse", "Point A", "Point B", "Destination"]
+                };
+                await delivery.save();
+                console.log(`[Job ${job.id}] Route calculated for Delivery ${deliveryId}`);
+            }
+        } catch (err) {
+            console.error(`[Job ${job.id}] Failed to update delivery:`, err);
+            throw err;
+        }
+    }
+}, {
+    connection: redisConnection,
+    concurrency: 5
+});
+
+worker.on('completed', job => {
+    console.log(`[Job ${job.id}] has completed!`);
+});
+
+worker.on('failed', (job, err) => {
+    console.log(`[Job ${job.id}] has failed with ${err.message}`);
+});
+

@@ -1,16 +1,33 @@
+import { acquireLock, releaseLock } from "../utils/redisLock.js";
 import { assignCourierToParcel } from "../services/dispatcher.service.js";
 
+/* CREATE - Auto-assign courier to existing parcel */
 export const createDelivery = async (req, res) => {
-  try {
-    const { parcelId, zoneId } = req.body;
+  const { parcelId, zoneId } = req.body;
+  
+  // Validation
+  if (!parcelId || !zoneId) {
+    return res.status(400).json({
+      success: false,
+      message: "parcelId and zoneId are required"
+    });
+  }
 
-    if (!parcelId || !zoneId) {
-      return res.status(400).json({
+  // Use zone-based lock instead of courier-specific
+  const lockKey = `lock:zone:${zoneId}`;
+  let lockValue;
+
+  try {
+    // Acquire distributed lock
+    lockValue = await acquireLock(lockKey, 5000);
+    if (!lockValue) {
+      return res.status(409).json({
         success: false,
-        message: "parcelId and zoneId are required"
+        message: "Zone is being processed by another request. Please retry.",
       });
     }
 
+    // Assign courier to parcel
     const delivery = await assignCourierToParcel({ parcelId, zoneId });
 
     return res.status(201).json({
@@ -18,6 +35,7 @@ export const createDelivery = async (req, res) => {
       message: "Delivery created successfully",
       data: delivery
     });
+
   } catch (error) {
     console.error("Error creating delivery:", error);
 
@@ -43,12 +61,18 @@ export const createDelivery = async (req, res) => {
       message: "Failed to create delivery",
       error: error.message
     });
+
+  } finally {
+    // Always release lock
+    if (lockValue) {
+      await releaseLock(lockKey, lockValue);
+    }
   }
 };
 
+/* READ ALL */
 export const getAllDeliveries = async (req, res) => {
   try {
-    // (to be implemented later with DB)
     res.status(200).json({
       success: true,
       data: [],
@@ -64,11 +88,11 @@ export const getAllDeliveries = async (req, res) => {
   }
 };
 
+/* READ ONE */
 export const getDeliveryById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // (to be implemented later with DB)
     res.status(200).json({
       success: true,
       data: { id },
