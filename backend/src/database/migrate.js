@@ -1,16 +1,15 @@
-import sequelize from "../config/db.js";
-import "../models/index.js"; // Import pour charger tous les modèles et relations
+import { sequelize } from "../models/index.js";
 
 export const migrate = async () => {
   try {
     console.log("🔄 Starting database migration...");
     
-    // Synchroniser tous les modèles avec la base de données
-    await sequelize.sync({ alter: true }); // alter: true modifie les tables existantes
-    // Pour production, utilisez { alter: false } et des migrations propres
+    // alter: true = modifie les tables existantes
+    // force: false = ne supprime pas les tables
+    await sequelize.sync({ alter: true });
     
     console.log("✅ Database migration completed successfully!");
-    console.log("📋 Tables created:");
+    console.log("📋 Tables created/updated:");
     console.log("   - users");
     console.log("   - zones");
     console.log("   - couriers");
@@ -23,7 +22,7 @@ export const migrate = async () => {
   }
 };
 
-// Si exécuté directement
+// Exécution directe du script
 if (import.meta.url === `file://${process.argv[1]}`) {
   migrate()
     .then(() => {
