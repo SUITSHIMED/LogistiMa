@@ -17,10 +17,8 @@ const worker = new Worker('delivery-queue', async (job) => {
     if (job.name === 'calculate-route') {
         const { deliveryId, startLocation } = job.data;
 
-        // Simulate complex calculation (Story 5.3)
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Update Delivery with Route Data
         try {
             const delivery = await Delivery.findByPk(deliveryId);
             if (delivery) {
