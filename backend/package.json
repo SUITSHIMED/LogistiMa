@@ -8,8 +8,10 @@
     "start": "node src/server.js",
     "worker": "node src/worker.js",
     "dev": "node src/server.js",
-    "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest"
-  },
+    "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:stress": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest tests/delivery.stress.test.js",
+    "test:stress:verbose": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest tests/delivery.stress.test.js --verbose"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
+    "axios": "^1.13.2",
     "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",
