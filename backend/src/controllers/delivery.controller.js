@@ -4,7 +4,7 @@ import { assignCourierToParcel } from "../services/dispatcher.service.js";
 /* CREATE - Auto-assign courier to existing parcel */
 export const createDelivery = async (req, res) => {
   const { parcelId, zoneId } = req.body;
-  
+
   // Validation
   if (!parcelId || !zoneId) {
     return res.status(400).json({
@@ -18,8 +18,17 @@ export const createDelivery = async (req, res) => {
   let lockValue;
 
   try {
-    // Acquire distributed lock
-    lockValue = await acquireLock(lockKey, 5000);
+    // Acquire distributed lock with retry
+    let retries = 10;
+    while (retries > 0) {
+      lockValue = await acquireLock(lockKey, 5000);
+      if (lockValue) break;
+
+      // Wait 200ms before retry
+      await new Promise(resolve => setTimeout(resolve, 200));
+      retries--;
+    }
+
     if (!lockValue) {
       return res.status(409).json({
         success: false,
@@ -39,7 +48,7 @@ export const createDelivery = async (req, res) => {
   } catch (error) {
     console.error("Error creating delivery:", error);
 
-    // No courier available
+    // No courier availablelock
     if (error.code === "NO_COURIER_AVAILABLE") {
       return res.status(409).json({
         success: false,
@@ -50,6 +59,14 @@ export const createDelivery = async (req, res) => {
     // Parcel not found
     if (error.code === "PARCEL_NOT_FOUND") {
       return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    // Parcel already assigned
+    if (error.code === "PARCEL_ALREADY_ASSIGNED") {
+      return res.status(409).json({
         success: false,
         message: error.message
       });
