@@ -3,7 +3,35 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const sequelize = new Sequelize(
+const databaseUrl = process.env.DATABASE_URL;
+
+let sequelize;
+
+if (databaseUrl) {
+  // Production (Render)
+  sequelize = new Sequelize(databaseUrl, {
+    dialect: "postgres",
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    },
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    },
+    define: {
+      timestamps: true,
+      underscored: true
+    }
+  });
+} else {
+
+ sequelize = new Sequelize(
   process.env.DB_NAME || "logistima_dev",
   process.env.DB_USER || "postgres",
   process.env.DB_PASSWORD || "postgres",
@@ -30,5 +58,6 @@ const sequelize = new Sequelize(
     }
   }
 );
+}
 
 export default sequelize;
